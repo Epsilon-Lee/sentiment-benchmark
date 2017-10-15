@@ -17,6 +17,7 @@ parser = argparse.ArgumentParser(description="training options")
 # data loading
 parser.add_argument("-dataset_path", type=str, default="./NLPCC/dataset.pt")
 parser.add_argument("-dictionary_path", type=str, default="./NLPCC/dict.pt")
+parser.add_argument("-save_path", type=str, default="./Checkpoints/best_model.pt")
 parser.add_argument("-checkpoint_path", type=str, default="")
 
 # neural network related
@@ -109,6 +110,11 @@ def train(model, optimizer, dictionary, epoch_num, trainDataset, devDataset, tes
 	loss_lst = []
 	batch_count = 0
 	cross_entropy_loss = critierion()
+
+	dev_loss_lst = []
+	best_dev_acc_count = 0
+	test_loss_lst = []
+
 	for epoch_idx in range(epoch_num, opts.max_epoch):
 		trainEpoch(epoch_idx, batch_count, loss_lst)
 
@@ -135,6 +141,8 @@ def train(model, optimizer, dictionary, epoch_num, trainDataset, devDataset, tes
 			dev_acc_count += torch.eq(predict_classes, dev_label_tensor).sum()
 		print 'Evaluation on devDataset'
 		print 'Accuracy', dev_acc_count * 1. / len(devDataset.examples_idx), 'Loss per batch', dev_loss / devDataset.batch_num
+		print 'Best_dev_acc_count', best_dev_acc_count, 'dev_acc_count', dev_acc_count
+
 		test_loss = 0
 		test_acc_count = 0
 		for idx in range(len(testDataset)):
@@ -156,8 +164,21 @@ def train(model, optimizer, dictionary, epoch_num, trainDataset, devDataset, tes
 			test_acc_count += torch.eq(predict_classes, test_label_tensor).sum()
 		print 'Evaluation on testDataset'
 		print 'Accuracy', test_acc_count * 1. / len(testDataset.examples_idx), 'Loss per batch', test_loss / testDataset.batch_num
-		print 
+		
 		# 4. save checkpoint
+		if dev_acc_count > best_dev_acc_count:
+			best_dev_acc_count = dev_acc_count
+			print 'Saving the best model...'
+			checkpoint = {}
+			state_dict = model.state_dict()
+			checkpoint['model_state_dict'] = {k : v for k, v in state_dict.items()}
+			checkpoint['epoch_num'] = epoch_idx
+			checkpoint['dev_accuracy'] = dev_acc_count * 1. / len(devDataset.examples_idx)
+			checkpoint['test_accuracy'] = test_acc_count * 1. / len(testDataset.examples_idx)
+			checkpoint['optimizer'] = optimizer
+			checkpoint['opts'] = opts
+			torch.save(checkpoint, opts.save_path)
+		print 
 
 def predict(model, devDataset, testDataset):
 	# model.eval()
@@ -183,10 +204,9 @@ if __name__ == '__main__':
 	# RNNHidAvg model
 	model = RNNHidAvg(opts)
 
+	# 3. load model, optimizer and other training states from checkpoint
 	if opts.checkpoint_path != "":
 		print "Loading checkpoint to initialize the model"
-		# TO-DO
-
 		checkpoint = torch.load(opts.checkpoint_path)
 		model_state_dict = checkpoint['model_state_dict']
 		model.load_state_dict(model_state_dict)
