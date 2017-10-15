@@ -10,8 +10,8 @@ class Dictionary(object):
 	def __init__(self, sentenceList, labelList, savedDictFile=None):
 
 		if savedDictFile != None:
-			savedDict = torch.load(savedDictFile)['dict']
-
+			savedDict = torch.load(savedDictFile)
+			
 			self.idx2symbol = savedDict['idx2symbol']
 			self.symbol2idx = savedDict['symbol2idx']
 			self.symbol_freq_lst = savedDict['symbol_freq_lst']

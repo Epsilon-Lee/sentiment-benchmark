@@ -3,10 +3,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 # EmbAvg model
-class EmbAvg(nn.module):
-	def __init__(self, opt):
-		self.emb = nn.Embedding(opt.vocab_size, opt.emb_size)
-		self.linear = nn.Linear(opt.emb_size, opt.class_num)
+class EmbAvg(nn.Module):
+	def __init__(self, opts):
+		super(EmbAvg, self).__init__()
+
+		self.emb = nn.Embedding(opts.vocab_size, opts.emb_size)
+		self.linear = nn.Linear(opts.emb_size, opts.class_num)
 
 	def forward(self, input, mask):
 	# input should be one-hot tensor Variable with shape: (batch_size x seq_len x vocab_size)
@@ -23,20 +25,21 @@ class EmbAvg(nn.module):
 		return predict # shape: (batch_size x class_num)
 
 # RNNHidAvg model
-class RNNHidAvg(nn.module):
-	def __init__(self, opt):
-		self.emb = nn.Embedding(opt.vocab_size, opt.emb_size)
+class RNNHidAvg(nn.Module):
+	def __init__(self, opts):
+		super(RNNHidAvg, self).__init__()
+		self.emb = nn.Embedding(opts.vocab_size, opts.emb_size)
 		# 3 types of rnn
-		if opt.rnn_type == 'rnn':
-			self.rnn = nn.RNN(opt.emb_size, opt.hid_size)
+		if opts.rnn_type == 'rnn':
+			self.rnn = nn.RNN(opts.emb_size, opts.hid_size)
 			self.rnn_type = 'rnn'
-		elif opt.rnn_type == 'lstm':
-			self.rnn = nn.LSTM(opt.emb_size, opt.hid_size)
+		elif opts.rnn_type == 'lstm':
+			self.rnn = nn.LSTM(opts.emb_size, opts.hid_size)
 			self.rnn_type = 'lstm'
 		else:
-			self.rnn = nn.GRU(opt.emb_size, opt.hid_size)
+			self.rnn = nn.GRU(opts.emb_size, opts.hid_size)
 			self.rnn_type = 'gru'
-		self.linear = nn.Linear(opt.hid_size, opt.class_num)
+		self.linear = nn.Linear(opts.hid_size, opts.class_num)
 
 	def forward(self, input, mask):
 		# input shape: (batch_size x seq_len x emb_size)
@@ -51,3 +54,17 @@ class RNNHidAvg(nn.module):
 		predict = F.softmax(unnormalized_predict)
 
 		return predict # shape: (batch_size x class_num)
+
+# unit test
+if __name__ == '__main__':
+	
+	class Options:
+		emb_size = 128
+		hid_size = 128
+		vocab_size = 1000
+		class_num = 7
+		rnn_type = 'lstm'
+
+	opts = Options()
+	rnnHidAvg = RNNHidAvg(opts)
+	print rnnHidAvg

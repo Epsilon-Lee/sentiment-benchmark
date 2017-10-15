@@ -41,7 +41,7 @@ class WeiboDataset(object):
 	 	# batch_tensor shape: (batch_size x max_len)
 	 	# mask_tensor shape: (batch_size x max_len)
 	 	# label_tensor shape: (batch_size)
-	 	return batch_tensor, mask_tensor, label_tensor
+	 	return batch_tensor, label_tensor, mask_tensor
 
 	def __getitem__(self, index):
 		# index should between [0, batch_num - 1], otherwise no data could be accessed
@@ -68,16 +68,11 @@ class WeiboDataset(object):
 	@classmethod
 	def preprocess(cls, examples, labels, dictionary):
 		
-		# string clean method
-		def clean_str(string):
-			return string
-
 		# check len(examples) == len(labels)
 		if len(examples) != len(labels):
 			print 'examples labels mismatch'
 			return None, None
 
-		# build dictionary
 		examples_idx = []
 		labels_idx = []
 		for example, label in zip(examples, labels):

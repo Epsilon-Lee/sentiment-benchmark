@@ -11,9 +11,9 @@ trainPath = 'NLPCC/char_train.txt'
 devPath = 'NLPCC/char_dev.txt'
 testPath = 'NLPCC/char_test.txt'
 
-# train = []
-# dev = []
-# test = []
+train = []
+dev = []
+test = []
 # with open(filePath, 'r') as f:
 # 	lines = f.readlines()
 # 	example_num = len(lines)
@@ -77,7 +77,7 @@ for k, v in dictionary.label_freq_lst:
 cut_freq = 3
 dictionary.prune_freq(cut_freq)
 # print to have a direct feeling of the un-pruned dict
-sorted_symbol2idx = sorted(dictionary.symbol2idx.items(), key=lambda tup: tup[1])
+# sorted_symbol2idx = sorted(dictionary.symbol2idx.items(), key=lambda tup: tup[1])
 # for symbol, idx in sorted_symbol2idx:
 # 	print symbol, idx
 print 'Original dictionary size:', dictionary.originDictSize()
@@ -86,7 +86,7 @@ dictionary.saveDict('./NLPCC/dict.pt')
 # 3. create dataset and save as dataset.pt
 devSentenceList = []
 devLabelList = []
-for example in train:
+for example in dev:
 	example_and_label = example.strip().split('|')
 	example_merge = "|".join(example_and_label[:-1]).strip()
 	label = example_and_label[-1].strip()
@@ -95,7 +95,7 @@ for example in train:
 
 testSentenceList = []
 testLabelList = []
-for example in dev:
+for example in test:
 	example_and_label = example.strip().split('|')
 	example_merge = "|".join(example_and_label[:-1]).strip()
 	label = example_and_label[-1].strip()
@@ -112,9 +112,10 @@ devDataset = WeiboDataset(dev_examples_idx, dev_labels_idx, batch_size)
 testDataset = WeiboDataset(test_examples_idx, test_labels_idx, batch_size)
 
 ## save dataset
-dataset = {'trainDataset':trainDataset, 'devDataset':devDataset, 'testDatset':testDataset}
+dataset = {'trainDataset':trainDataset, 'devDataset':devDataset, 'testDataset':testDataset}
 torch.save(dataset, './NLPCC/dataset.pt')
 
+# print batch_tensor
 for idx in range(len(devDataset)):
 	batch_tensor, _, _ =  devDataset[idx]
 	print batch_tensor
